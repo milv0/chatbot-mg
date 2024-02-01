@@ -211,11 +211,11 @@ class KoGPT2Chat(LightningModule):
         mask = torch.LongTensor([item[1] for item in batch])
         label = torch.LongTensor([item[2] for item in batch])
         return data, mask, label
-    
+
     def train_dataloader(self):
         try:
             # Load data
-            data = pd.read_csv('chatbot_dataset.csv')
+            data = pd.read_csv('chatbot_dataset_s.csv')
 
             print("Loaded data:\n", data.head())
 
@@ -242,26 +242,24 @@ class KoGPT2Chat(LightningModule):
             print(f"Error in train_dataloader: {e}")
             raise
 
-    def chat(self, sent='0'):
+    def chat(self, sent='0', user_input=None):
         tok = TOKENIZER
         sent_tokens = tok.tokenize(sent)
         with torch.no_grad():
-          p = input('user > ')
-          q = p.strip()
-          a = ''
-          while 1:
-            input_ids = torch.LongTensor(tok.encode(U_TKN + q + SENT + sent + S_TKN + a)).unsqueeze(dim=0)
-            pred = self(input_ids)
-            gen = tok.convert_ids_to_tokens(
-              torch.argmax(
-                pred,
-                dim=-1).squeeze().numpy().tolist())[-1]
-            if gen == EOS:
-              break
-            a += gen.replace('▁', ' ')
-          print("Chatbot > {}".format(a.strip()))
-        return q
-
+            q = user_input.strip() if user_input else input('user > ')
+            a = ''
+            while 1:
+                input_ids = torch.LongTensor(tok.encode(U_TKN + q + SENT + sent + S_TKN + a)).unsqueeze(dim=0)
+                pred = self(input_ids)
+                gen = tok.convert_ids_to_tokens(
+                    torch.argmax(
+                        pred,
+                        dim=-1).squeeze().numpy().tolist())[-1]
+                if gen == EOS:
+                    break
+                a += gen.replace('▁', ' ')
+            print("Chatbot > {}".format(a.strip()))
+            return q
 
 parser = KoGPT2Chat.add_model_specific_args(parser)
 parser = Trainer.add_argparse_args(parser)
@@ -285,9 +283,19 @@ if __name__ == "__main__":
             args,
             checkpoint_callback=checkpoint_callback, gradient_clip_val=1.0)
         trainer.fit(model)
-        logging.info('best model path {}'.format(checkpoint_callback.best_model_path))
+        best_model_path = checkpoint_callback.best_model_path
+        logging.info('best model path {}'.format(best_model_path))
     if args.chat:
         model = KoGPT2Chat.load_from_checkpoint(args.model_params)
-        model.chat()
+        model.eval()  # 모델을 evaluation 모드로 설정
 
-        # python trainer.py --train --max_epochs 1
+        while True:
+            user_input = input('user > ')
+            if user_input.lower() in ['exit', 'quit', 'q']:
+                break  # 종료 조건
+            model.chat(sent=args.sentiment, user_input=user_input)
+
+        # 추가된 부분: 가장 낮은 손실을 갖는 모델의 이름 출력
+        if args.train:
+            logging.info('Best model path: {}'.format(best_model_path))
+
