@@ -215,7 +215,7 @@ class KoGPT2Chat(LightningModule):
     def train_dataloader(self):
         try:
             # Load data
-            data = pd.read_csv('chatbot_dataset_s.csv')
+            data = pd.read_csv('chatbot_dataset.csv')
 
             print("Loaded data:\n", data.head())
 
