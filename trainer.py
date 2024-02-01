@@ -297,5 +297,5 @@ if __name__ == "__main__":
 
         # 추가된 부분: 가장 낮은 손실을 갖는 모델의 이름 출력
         if args.train:
-            logging.info('Best model path: {}'.format(best_model_path))
+            print('Best model path: {}'.format(best_model_path))
 
