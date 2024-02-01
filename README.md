@@ -1,5 +1,7 @@
 # chatbot-mg
 
+kogpt2-wellness-chatbot
+
 python 3.8.10
 
 pip install -r requirements_mg.txt
