@@ -26,7 +26,7 @@ parser.add_argument('--sentiment',
 
 parser.add_argument('--model_params',
                     type=str,
-                    default='model_chp/model_-last.ckpt',
+                    default='model_chp_v2/model_-last.ckpt',
                     help='model binary for starting chat')
 
 parser.add_argument('--train',
